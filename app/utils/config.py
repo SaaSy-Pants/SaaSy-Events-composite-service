@@ -7,7 +7,7 @@ class Config:
     #Microservices URLs
     USER_MGMT_URL: str = os.getenv("USER_MGMT_URL", "http://localhost:8000")
     EVENT_MGMT_URL: str = os.getenv("EVENT_MGMT_URL", "http://localhost:8001")
-    EVENT_BOOKING_URL: str = os.getenv("EVENT_BOOK_URL", "http://localhost:8003")
+    TICKET_URL: str = os.getenv("TICKET_URL", "http://localhost:8001")
 
     #Composite Service Configurations
     COMPOSITE_SERVICE_PORT: int = int(os.getenv("COMPOSITE_SERVICE_PORT", 8002))
