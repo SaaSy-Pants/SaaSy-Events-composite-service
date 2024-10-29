@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.composite_service import CompositeService
 from app.models.response import HATEOASResponse, HATEOASLink
-import httpx
 
-router = APIRouter(prefix="/composite/users", tags=["composite_users"])
+user_router = APIRouter()
 
 async def get_composite_service():
     service = CompositeService()
@@ -12,70 +11,67 @@ async def get_composite_service():
     finally:
         await service.close()
 
-@router.get("/{user_id}", response_model=HATEOASResponse)
-async def get_composite_user(user_id: str, service: CompositeService = Depends(get_composite_service)):
-    try:
-        user = await service.get_user(user_id)
-        links = [
-            HATEOASLink(rel="self", href=f"/composite/users/{user_id}", method="GET"),
-            HATEOASLink(rel="modify", href=f"/composite/users/{user_id}", method="PUT"),
-            HATEOASLink(rel="delete", href=f"/composite/users/{user_id}", method="DELETE"),
-            HATEOASLink(rel="authenticate", href=f"/composite/users/authenticate", method="POST"),
-        ]
-        return HATEOASResponse(data=user, message="User retrieved successfully", links=links)
-    except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-
-@router.post("/", response_model=HATEOASResponse)
-async def create_composite_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
+@user_router.post("/", response_model=HATEOASResponse, status_code=201)
+async def create_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.create_user(user_data)
-        user_id = result.get("UID") or result.get("OID")
+        user_id = result.get("UID")
         links = [
-            HATEOASLink(rel="self", href=f"/composite/users/{user_id}", method="GET"),
-            HATEOASLink(rel="modify", href=f"/composite/users/{user_id}", method="PUT"),
-            HATEOASLink(rel="delete", href=f"/composite/users/{user_id}", method="DELETE"),
-            HATEOASLink(rel="authenticate", href=f"/composite/users/authenticate", method="POST"),
+            HATEOASLink(rel="self", href=f"/composite/user/{user_id}", method="GET"),
+            HATEOASLink(rel="modify", href=f"/composite/user/{user_id}", method="PUT"),
+            HATEOASLink(rel="delete", href=f"/composite/user/{user_id}", method="DELETE"),
         ]
         return HATEOASResponse(data=result, message="User created successfully", links=links)
     except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.json().get("message", "Error creating user"))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-
-
-@router.post("/authenticate", response_model=HATEOASResponse)
-async def authenticate_composite_user(email: str, password: str, service: CompositeService = Depends(get_composite_service)):
+@user_router.get("/{user_id}", response_model=HATEOASResponse)
+async def get_user(user_id: str, service: CompositeService = Depends(get_composite_service)):
     try:
-        result = await service.authenticate_user(email, password)
+        user = await service.get_user(user_id)
         links = [
-            HATEOASLink(rel="self", href=f"/composite/users/authenticate", method="POST"),
-            HATEOASLink(rel="user_details", href=f"/composite/users/{result.get('UID')}", method="GET"),
+            HATEOASLink(rel="self", href=f"/composite/user/{user_id}", method="GET"),
+            HATEOASLink(rel="modify", href=f"/composite/user/{user_id}", method="PUT"),
+            HATEOASLink(rel="delete", href=f"/composite/user/{user_id}", method="DELETE"),
         ]
-        return HATEOASResponse(data=result, message="Authentication successful", links=links)
+        return HATEOASResponse(data=user, message="User retrieved successfully", links=links)
     except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 404:
+            raise HTTPException(status_code=404, detail="User not found")
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-
-
-@router.put("/{user_id}", response_model=HATEOASResponse)
-async def modify_composite_user(user_id: str, user_data: dict, service: CompositeService = Depends(get_composite_service)):
+@user_router.put("/", response_model=HATEOASResponse)
+async def modify_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
-        result = await service.modify_user(user_id, user_data)
+        result = await service.modify_user(user_data)
+        user_id = result.get("UID")
         links = [
-            HATEOASLink(rel="self", href=f"/composite/users/{user_id}", method="GET"),
-            HATEOASLink(rel="delete", href=f"/composite/users/{user_id}", method="DELETE"),
-            HATEOASLink(rel="authenticate", href=f"/composite/users/authenticate", method="POST"),
+            HATEOASLink(rel="self", href=f"/composite/user/{user_id}", method="GET"),
+            HATEOASLink(rel="delete", href=f"/composite/user/{user_id}", method="DELETE"),
         ]
-        return HATEOASResponse(data=result, message="User modified successfully", links=links)
+        return HATEOASResponse(data=result, message="User updated successfully", links=links)
     except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 400:
+            raise HTTPException(status_code=400, detail="Bad Request: Invalid user data")
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@user_router.delete("/{user_id}", response_model=HATEOASResponse)
+async def delete_user(user_id: str, service: CompositeService = Depends(get_composite_service)):
+    try:
+        result = await service.delete_user(user_id)
+        links = [
+            HATEOASLink(rel="create", href="/composite/user", method="POST"),
+        ]
+        return HATEOASResponse(data=result, message="User deleted successfully", links=links)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 400:
+            raise HTTPException(status_code=400, detail="Bad Request: User not found")
+        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
