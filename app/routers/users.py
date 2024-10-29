@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.services.composite_service import CompositeService
 from app.models.response import HATEOASResponse, HATEOASLink
 
-user_router = APIRouter()
+router = APIRouter(prefix="/composite/user", tags=["composite_user"])
 
 async def get_composite_service():
     service = CompositeService()
