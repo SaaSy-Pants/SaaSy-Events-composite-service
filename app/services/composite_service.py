@@ -63,7 +63,7 @@ class CompositeService:
         return response.json()
 
     async def book_event_booking(self, booking_data: dict):
-        url = f"{config.EVENT_BOOKING_URL}/tickets/"  # Assuming the endpoint remains /tickets/
+        url = f"{config.EVENT_BOOKING_URL}/tickets"
         response = await self.client.post(url, json=booking_data)
         response.raise_for_status()
         return response.json()
