@@ -27,7 +27,7 @@ async def composite_health_check(service: CompositeService = Depends(get_composi
         event_health_status = event_health.json()
 
         #Checking Event Booking Health
-        event_booking_health = await service.client.get(f"{service.config.EVENT_BOOKING_URL}/health")
+        event_booking_health = await service.client.get(f"{service.config.TICKET_URL}/health")
         event_booking_health.raise_for_status()
         event_booking_health_status = event_booking_health.json()
 

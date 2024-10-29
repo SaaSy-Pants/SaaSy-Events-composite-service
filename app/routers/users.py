@@ -34,7 +34,7 @@ async def get_composite_user(user_id: str, service: CompositeService = Depends(g
 async def create_composite_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.create_user(user_data)
-        user_id = result.get("UID") or result.get("user_id")
+        user_id = result.get("UID") or result.get("OID")
         links = [
             HATEOASLink(rel="self", href=f"/composite/users/{user_id}", method="GET"),
             HATEOASLink(rel="modify", href=f"/composite/users/{user_id}", method="PUT"),

@@ -62,20 +62,20 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def book_event_booking(self, booking_data: dict):
-        url = f"{config.EVENT_BOOKING_URL}/tickets/"  # Assuming the endpoint remains /tickets/
+    async def book_ticket(self, booking_data: dict):
+        url = f"{config.TICKET_URL}/tickets"
         response = await self.client.post(url, json=booking_data)
         response.raise_for_status()
         return response.json()
 
-    async def cancel_event_booking(self, booking_id: str):
-        url = f"{config.EVENT_BOOKING_URL}/tickets/{booking_id}"
+    async def cancel_ticket(self, booking_id: str):
+        url = f"{config.TICKET_URL}/tickets/{booking_id}"
         response = await self.client.delete(url)
         response.raise_for_status()
         return {"message": "Event booking canceled successfully"}
 
-    async def fetch_event_booking(self, booking_id: str):
-        url = f"{config.EVENT_BOOKING_URL}/tickets/{booking_id}"
+    async def fetch_ticket(self, booking_id: str):
+        url = f"{config.TICKET_URL}/tickets/{booking_id}"
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()

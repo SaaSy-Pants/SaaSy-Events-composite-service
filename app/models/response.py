@@ -3,7 +3,7 @@ from typing import List, Optional, Any
 
 class HATEOASLink(BaseModel):
     rel: str
-    href: HttpUrl
+    href: str
     method: str
 
 class HATEOASResponse(BaseModel):
