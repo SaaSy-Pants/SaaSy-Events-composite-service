@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import users, events, health, event_booking
+from app.routers import users, events, health, ticket
 from app.middleware.logging import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.config import Config
@@ -24,7 +24,7 @@ app.add_middleware(LoggingMiddleware)
 
 app.include_router(users.router)
 app.include_router(events.router)
-app.include_router(event_booking.router)
+app.include_router(ticket.router)
 app.include_router(health.router)
 
 @app.get("/", tags=["root"])
