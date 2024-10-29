@@ -8,27 +8,33 @@ class CompositeService:
         self.client = httpx.AsyncClient()
 
     async def get_user(self, user_id: str):
-        url = f"{config.USER_MGMT_URL}/users/{user_id}"
+        url = f"{config.USER_MGMT_URL}/user/{user_id}"
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()
 
     async def create_user(self, user_data: dict):
-        url = f"{config.USER_MGMT_URL}/users/createUser"
+        url = f"{config.USER_MGMT_URL}/user"
         response = await self.client.post(url, json=user_data)
         response.raise_for_status()
         return response.json()
 
     async def authenticate_user(self, email: str, password: str):
-        url = f"{config.USER_MGMT_URL}/users/authenticate"
+        url = f"{config.USER_MGMT_URL}/user/authenticate"
         response = await self.client.post(url, data={"email": email, "password": password})
         response.raise_for_status()
         return response.json()
 
     async def modify_user(self, user_id: str, user_data: dict):
-        url = f"{config.USER_MGMT_URL}/users/modifyUser"
+        url = f"{config.USER_MGMT_URL}/user"
         user_data["UID"] = user_id
         response = await self.client.put(url, json=user_data)
+        response.raise_for_status()
+        return response.json()
+
+    async def delete_user(self, user_id: str):
+        url = f"{config.USER_MGMT_URL}/user/{user_id}"
+        response = await self.client.delete(url)
         response.raise_for_status()
         return response.json()
 
