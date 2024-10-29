@@ -6,6 +6,7 @@ config = Config()
 class CompositeService:
     def __init__(self):
         self.client = httpx.AsyncClient()
+        self.config = Config()
 
     async def get_user(self, user_id: str):
         url = f"{config.USER_MGMT_URL}/user/{user_id}"
