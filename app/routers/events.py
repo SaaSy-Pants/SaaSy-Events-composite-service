@@ -22,7 +22,7 @@ async def get_composite_event(event_id: str, service: CompositeService = Depends
             HATEOASLink(rel="self", href=f"/composite/events/{event_id}", method="GET"),
             HATEOASLink(rel="modify", href=f"/composite/events/{event_id}", method="PUT"),
             HATEOASLink(rel="delete", href=f"/composite/events/{event_id}", method="DELETE"),
-            HATEOASLink(rel="tickets", href=f"/composite/events/{event_id}/tickets", method="GET"),  # Example
+            HATEOASLink(rel="tickets", href=f"/composite/events/{event_id}/tickets", method="GET"),
         ]
         return HATEOASResponse(data=event, message="Event retrieved successfully", links=links)
     except httpx.HTTPStatusError as exc:
@@ -54,7 +54,7 @@ async def get_all_composite_events(
 async def create_composite_event(event_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.create_event(event_data)
-        event_id = result.get("EID") or result.get("event_id")
+        event_id = result.get("EID")
         links = [
             HATEOASLink(rel="self", href=f"/composite/events/{event_id}", method="GET"),
             HATEOASLink(rel="modify", href=f"/composite/events/{event_id}", method="PUT"),
