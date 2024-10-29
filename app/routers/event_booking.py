@@ -19,7 +19,7 @@ async def book_event_booking(booking_data: dict, service: CompositeService = Dep
     
     try:
         result = await service.book_event_booking(booking_data)
-        booking_id = result.get("TID") or result.get("ticket_id")  # Adjust based on actual response keys
+        booking_id = result.get("TID")
         links = [
             HATEOASLink(rel="self", href=f"/composite/event-booking/{booking_id}", method="GET"),
             HATEOASLink(rel="cancel", href=f"/composite/event-booking/{booking_id}", method="DELETE"),
