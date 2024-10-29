@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import users, events, health
+from app.routers import users, events, health, event_booking
 from app.middleware.logging import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.config import Config
@@ -13,7 +13,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*']
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
