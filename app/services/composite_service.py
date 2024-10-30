@@ -94,21 +94,35 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def get_tickets_and_events(self, user_id: str, limit: int = 10, offset: int = 0):
+     async def get_tickets_and_events(self, user_id: str, limit: int = 10, offset: int = 0):
         #Fetches all tickets for a specific user and all events asynchronously.
         try:
             tickets_coroutine = self.get_tickets_by_user(user_id)
             events_coroutine = self.get_all_events(limit=limit, offset=offset)
             tickets_result, events_result = await asyncio.gather(tickets_coroutine, events_coroutine)
-            return {
-                "tickets": tickets_result.get("tickets", []),
-                "events": events_result.get("events", []),
-                "events_pagination": {
-                    "limit": limit,
-                    "offset": offset,
-                }
+            events = events_result.get("events", [])
+
+            has_next = len(events) > limit
+            if has_next:
+                events = events[:limit]
+
+            has_prev = offset > 0
+
+            events_pagination = {
+                "limit": limit,
+                "offset": offset,
+                "has_next": has_next,
+                "has_prev": has_prev
             }
 
+            return {
+                "tickets": tickets_result.get("tickets", []),
+                "events": events,
+                "events_pagination": events_pagination
+            }
+
+        except httpx.HTTPStatusError as exc:
+            raise exc
         except Exception as e:
             raise e
 
