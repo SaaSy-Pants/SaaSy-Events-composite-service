@@ -45,8 +45,8 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def get_all_events(self, page: int = 1, size: int = 10):
-        url = f"{config.EVENT_MGMT_URL}/events?page={page}&size={size}"
+    async def get_all_events(self, limit: int = 1, offset: int = 10):
+        url = f"{config.EVENT_MGMT_URL}/events?limit={limit}&offset={offset}"
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()
@@ -57,8 +57,8 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def update_event(self, event_id: str, event_data: dict):
-        url = f"{config.EVENT_MGMT_URL}/events/{event_id}"
+    async def update_event(self, event_data: dict):
+        url = f"{config.EVENT_MGMT_URL}/events"
         response = await self.client.put(url, json=event_data)
         response.raise_for_status()
         return response.json()
@@ -70,19 +70,19 @@ class CompositeService:
         return response.json()
 
     async def book_ticket(self, booking_data: dict):
-        url = f"{config.TICKET_URL}/tickets"
+        url = f"{config.TICKET_URL}/ticket"
         response = await self.client.post(url, json=booking_data)
         response.raise_for_status()
         return response.json()
 
     async def cancel_ticket(self, booking_id: str):
-        url = f"{config.TICKET_URL}/tickets/{booking_id}"
+        url = f"{config.TICKET_URL}/ticket/{booking_id}"
         response = await self.client.delete(url)
         response.raise_for_status()
         return {"message": "Event booking canceled successfully"}
 
     async def fetch_ticket(self, booking_id: str):
-        url = f"{config.TICKET_URL}/tickets/{booking_id}"
+        url = f"{config.TICKET_URL}/ticket/{booking_id}"
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()

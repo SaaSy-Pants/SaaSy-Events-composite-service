@@ -3,6 +3,7 @@ from app.routers import users, events, health, ticket
 from app.middleware.logging import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.config import Config
+import uvicorn
 
 config = Config()
 
@@ -32,4 +33,4 @@ async def read_root():
     return {"message": "Welcome to the Composite Service!"}
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8002, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8003, reload=True)

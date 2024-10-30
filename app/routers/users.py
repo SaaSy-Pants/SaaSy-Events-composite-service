@@ -1,3 +1,4 @@
+import httpx
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.composite_service import CompositeService
 from app.models.response import HATEOASResponse, HATEOASLink
@@ -47,7 +48,7 @@ async def get_user(user_id: str, service: CompositeService = Depends(get_composi
 @router.put("/", response_model=HATEOASResponse)
 async def modify_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
-        result = await service.modify_user(user_data)
+        result = await service.modify_user(user_data['UID'], user_data)
         user_id = result.get("UID")
         links = [
             HATEOASLink(rel="self", href=f"/composite/user/{user_id}", method="GET"),
