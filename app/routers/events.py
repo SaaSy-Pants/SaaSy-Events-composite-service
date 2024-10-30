@@ -34,14 +34,14 @@ async def get_composite_event(event_id: str, service: CompositeService = Depends
 
 @router.get("/", response_model=HATEOASResponse)
 async def get_all_composite_events(
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    limit: int = Query(1, ge=1),
+    offset: int = Query(10, ge=1, le=100),
     service: CompositeService = Depends(get_composite_service)
 ):
     try:
-        events = await service.get_all_events(page=page, size=size)
+        events = await service.get_all_events(limit=limit, offset=offset)
         links = [
-            HATEOASLink(rel="self", href=f"/composite/events?page={page}&size={size}", method="GET"),
+            HATEOASLink(rel="self", href=f"/composite/events?limit={limit}&offset={offset}", method="GET"),
             HATEOASLink(rel="create", href="/composite/events", method="POST"),
         ]
         return HATEOASResponse(data=events, message="Events retrieved successfully", links=links)

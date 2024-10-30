@@ -45,8 +45,8 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def get_all_events(self, page: int = 1, size: int = 10):
-        url = f"{config.EVENT_MGMT_URL}/events?page={page}&size={size}"
+    async def get_all_events(self, limit: int = 1, offset: int = 10):
+        url = f"{config.EVENT_MGMT_URL}/events?limit={limit}&offset={offset}"
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()
