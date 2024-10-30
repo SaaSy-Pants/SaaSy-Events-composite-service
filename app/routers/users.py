@@ -11,7 +11,7 @@ async def get_composite_service():
     finally:
         await service.close()
 
-@user_router.post("/", response_model=HATEOASResponse, status_code=201)
+@router.post("/", response_model=HATEOASResponse, status_code=201)
 async def create_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.create_user(user_data)
@@ -27,7 +27,7 @@ async def create_user(user_data: dict, service: CompositeService = Depends(get_c
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@user_router.get("/{user_id}", response_model=HATEOASResponse)
+@router.get("/{user_id}", response_model=HATEOASResponse)
 async def get_user(user_id: str, service: CompositeService = Depends(get_composite_service)):
     try:
         user = await service.get_user(user_id)
@@ -44,7 +44,7 @@ async def get_user(user_id: str, service: CompositeService = Depends(get_composi
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@user_router.put("/", response_model=HATEOASResponse)
+@router.put("/", response_model=HATEOASResponse)
 async def modify_user(user_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.modify_user(user_data)
@@ -61,7 +61,7 @@ async def modify_user(user_data: dict, service: CompositeService = Depends(get_c
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@user_router.delete("/{user_id}", response_model=HATEOASResponse)
+@router.delete("/{user_id}", response_model=HATEOASResponse)
 async def delete_user(user_id: str, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.delete_user(user_id)
