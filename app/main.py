@@ -1,35 +1,22 @@
+import uvicorn
 from fastapi import FastAPI
-from app.routers import users, events, health, ticket
-from app.middleware.logging import LoggingMiddleware
 from fastapi.middleware.cors import CORSMiddleware
-from app.utils.config import Config
 
-config = Config()
+from app.routers import health, user_management
 
-app = FastAPI(
-    title="Composite Service",
-    description="API Gateway Composite between UI and Micro-services",
-)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=['*']
 )
 
-#Logging Middleware
-app.add_middleware(LoggingMiddleware)
+app.include_router(health.health_router, prefix='/health')
+app.include_router(user_management.user_management_router, prefix='/user_management')
 
-app.include_router(users.router)
-app.include_router(events.router)
-app.include_router(ticket.router)
-app.include_router(health.router)
-
-@app.get("/", tags=["root"])
-async def read_root():
-    return {"message": "Welcome to the Composite Service!"}
+@app.get("/")
+async def root():
+    return {"message": "Hello from the Composite Microservice!"}
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8002, reload=True)
+    uvicorn.run(app, host="localhost", port=8003)
