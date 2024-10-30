@@ -50,7 +50,7 @@ async def get_all_composite_events(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/", response_model=HATEOASResponse)
+@router.post("", response_model=HATEOASResponse)
 async def create_composite_event(event_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
         result = await service.create_event(event_data)
@@ -69,10 +69,11 @@ async def create_composite_event(event_data: dict, service: CompositeService = D
 
 
 
-@router.put("/{event_id}", response_model=HATEOASResponse)
-async def update_composite_event(event_id: str, event_data: dict, service: CompositeService = Depends(get_composite_service)):
+@router.put("", response_model=HATEOASResponse)
+async def update_composite_event(event_data: dict, service: CompositeService = Depends(get_composite_service)):
     try:
-        result = await service.update_event(event_id, event_data)
+        result = await service.update_event(event_data)
+        event_id = result.get("EID")
         links = [
             HATEOASLink(rel="self", href=f"/composite/events/{event_id}", method="GET"),
             HATEOASLink(rel="delete", href=f"/composite/events/{event_id}", method="DELETE"),
