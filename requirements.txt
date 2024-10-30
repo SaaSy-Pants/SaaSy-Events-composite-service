@@ -1,6 +1,6 @@
+asyncio
 fastapi
 uvicorn
 httpx
 python-dotenv
 pydantic
-
