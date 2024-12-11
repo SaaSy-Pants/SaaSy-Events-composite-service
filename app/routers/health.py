@@ -1,5 +1,4 @@
-
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from app.services.composite_service import CompositeService
 from app.models.response import HATEOASResponse, HATEOASLink
 import httpx
@@ -16,17 +15,14 @@ async def get_composite_service():
 @router.get("/", response_model=HATEOASResponse)
 async def composite_health_check(service: CompositeService = Depends(get_composite_service)):
     try:
-        #Checking User Management Health
         user_health = await service.client.get(f"{service.config.USER_MGMT_URL}/health")
         user_health.raise_for_status()
         user_health_status = user_health.json()
 
-        #Checking Event Management Health
         event_health = await service.client.get(f"{service.config.EVENT_MGMT_URL}/health")
         event_health.raise_for_status()
         event_health_status = event_health.json()
 
-        #Checking Event Booking Health
         event_booking_health = await service.client.get(f"{service.config.TICKET_URL}/health")
         event_booking_health.raise_for_status()
         event_booking_health_status = event_booking_health.json()
@@ -39,9 +35,9 @@ async def composite_health_check(service: CompositeService = Depends(get_composi
 
         links = [
             HATEOASLink(rel="self", href="/composite/health", method="GET"),
-            HATEOASLink(rel="users", href="/composite/users", method="GET"),
+            HATEOASLink(rel="users", href="/composite/user", method="GET"),
             HATEOASLink(rel="events", href="/composite/events", method="GET"),
-            HATEOASLink(rel="event_booking", href="/composite/event-booking", method="GET"),
+            HATEOASLink(rel="event_booking", href="/composite/ticket", method="GET"),
         ]
 
         return HATEOASResponse(data=combined_health, message="All services are healthy", links=links)
