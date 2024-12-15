@@ -31,7 +31,7 @@ jobs:
           pip install pytest
           pip install -r requirements.txt          
 
-      # Step 5: Deploy to EC2
+      # Step 4: Deploy to EC2
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -50,7 +50,7 @@ jobs:
             # Initialize Git repository if not already initialized
             if [ ! -d ".git" ]; then
               git init
-              git remote add origin https://github.com/yourusername/your-repo.git
+              git remote add origin https://github.com/SaaSy-Pants/SaaSy-Events-eventhandler.git
             fi
 
             # Pull the latest changes from GitHub
