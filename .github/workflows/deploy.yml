@@ -63,7 +63,7 @@ jobs:
 
             # Install dependencies
             pip install --upgrade pip
-            pip install -r requirements.txt
+            pip install --force-reinstall --upgrade -r requirements.txt
 
             # Kill any existing main.py process
             pkill -f "python3 -m app.main" || true
