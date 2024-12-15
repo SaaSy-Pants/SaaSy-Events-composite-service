@@ -13,8 +13,18 @@ async def get_composite_service():
     finally:
         await service.close()
 
+def validate_token(token: str):
+    try:
+        try:
+            return verify_custom_jwt(token, 'user')
+        except HTTPException:
+            return verify_custom_jwt(token, 'organizer')
+    except HTTPException:
+        raise HTTPException(status_code=403, detail="Access denied: Unauthorized role")
+
 @router.get("/{event_id}", response_model=HATEOASResponse)
 async def get_composite_event(event_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         event = await service.get_event(event_id, token)
         links = [
@@ -36,6 +46,7 @@ async def get_all_composite_events(
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
+    validate_token(token)
     try:
         events = await service.get_all_events(limit=limit, offset=offset, token=token)
         links = [
@@ -56,6 +67,7 @@ async def create_composite_event(
     response: Response = None,
     async_create: bool = Query(False, description="If true, returns 202 Accepted for async pattern.")
 ):
+    validate_token(token)
     try:
         if async_create:
             response.status_code = 202
@@ -84,6 +96,7 @@ async def update_composite_event(
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
+    validate_token(token)
     try:
         result = await service.update_event(event_data, token)
         event_id = result.get("EID")
@@ -104,6 +117,7 @@ async def delete_composite_event(
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
+    validate_token(token)
     try:
         await service.delete_event(event_id, token)
         links = [
