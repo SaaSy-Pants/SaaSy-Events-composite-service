@@ -107,6 +107,37 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
+
+    async def get_organizer(self, organizer_id: str, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
+        response = await self.client.get(url, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def create_organizer(self, organizer_data: dict, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organizer"
+        response = await self.client.post(url, json=organizer_data, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def modify_organizer(self, organizer_id: str, organizer_data: dict, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
+        response = await self.client.put(url, json=organizer_data, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def delete_organizer(self, organizer_id: str, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
+        response = await self.client.delete(url, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def get_users(self, query: dict, token: str):
+        url = f"{self.config.USER_MGMT_URL}/user"
+        response = await self.client.get(url, params=query, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
     async def get_tickets_and_events(self, user_id: str, limit: int = 10, offset: int = 0, token: str = ""):
         tickets_coroutine = self.get_tickets_by_user(user_id, token)
         events_coroutine = self.get_all_events(limit=limit, offset=offset, token=token)
