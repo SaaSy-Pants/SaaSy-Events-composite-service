@@ -2,7 +2,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.composite_service import CompositeService
 from app.models.response import HATEOASResponse, HATEOASLink
-from app.utils.dependencies import get_token
+from app.utils.dependencies import get_token, verify_custom_jwt
 
 router = APIRouter(prefix="/composite/user", tags=["composite_user"])
 
@@ -15,6 +15,7 @@ async def get_composite_service():
 
 @router.post("/", response_model=HATEOASResponse, status_code=201)
 async def create_user(user_data: dict, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    verify_custom_jwt(token, 'user')
     try:
         result = await service.create_user(user_data, token)
         user_id = result.get("UID")
@@ -31,6 +32,7 @@ async def create_user(user_data: dict, service: CompositeService = Depends(get_c
 
 @router.get("/{user_id}", response_model=HATEOASResponse)
 async def get_user(user_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    verify_custom_jwt(token, 'organiser')
     try:
         user = await service.get_user(user_id, token)
         links = [
@@ -48,6 +50,7 @@ async def get_user(user_id: str, service: CompositeService = Depends(get_composi
 
 @router.put("/", response_model=HATEOASResponse)
 async def modify_user(user_data: dict, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    verify_custom_jwt(token, 'user')
     try:
         result = await service.modify_user(user_data['UID'], user_data, token)
         user_id = result.get("UID")
@@ -65,6 +68,7 @@ async def modify_user(user_data: dict, service: CompositeService = Depends(get_c
 
 @router.delete("/{user_id}", response_model=HATEOASResponse)
 async def delete_user(user_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    verify_custom_jwt(token, 'user')
     try:
         result = await service.delete_user(user_id, token)
         links = [
