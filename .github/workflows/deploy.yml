@@ -72,7 +72,7 @@ jobs:
             pip install -r requirements.txt
 
             # Kill any existing main.py process
-            pkill -f "python3 main.py" || true
+            pkill -f "python3 -m app.main" || true
 
             # Run main.py in the background using nohup
-            nohup python3 main.py > app.log 2>&1 &
+            nohup python3 -m app.main > app.log 2>&1 &
