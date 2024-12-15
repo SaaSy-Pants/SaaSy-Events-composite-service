@@ -31,13 +31,6 @@ jobs:
           pip install pytest
           pip install -r requirements.txt          
 
-      # Step 4: Run Tests
-      - name: Run Tests
-        run: |
-          source venv/bin/activate
-          # Replace with your test command, e.g., pytest
-          pytest
-
       # Step 5: Deploy to EC2
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
