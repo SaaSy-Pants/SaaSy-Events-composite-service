@@ -200,7 +200,7 @@ class CompositeService:
             print("Lambda function name not configured.")
             return None
         try:
-            payload = json.dumps({'body': {'TID': booking_details['TID'], 'event_name': booking_details['event_name'], 'num_guests': booking_details['num_guests']}})
+            payload = json.dumps({'body': booking_details })
             response = self.lambda_client.invoke(
                 FunctionName=self.lambda_function_name,
                 InvocationType='Event',
