@@ -28,7 +28,8 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pytest
+          pip install -r requirements.txt          
 
       # Step 4: Run Tests
       - name: Run Tests
