@@ -17,7 +17,6 @@ async def get_composite_service():
 def validate_token(token: str):
     try:
         try:
-            print(token)
             return verify_custom_jwt(token, 'user')
         except HTTPException:
             return verify_custom_jwt(token, 'organiser')
@@ -36,6 +35,13 @@ async def book_ticket(booking_data: dict, service: CompositeService = Depends(ge
             HATEOASLink(rel="cancel", href=f"/composite/event-booking/{booking_id}", method="DELETE"),
             HATEOASLink(rel="book_again", href="/composite/event-booking", method="POST"),
         ]
+        booking_details = {
+            'event_name': booking_data['event_name'],
+            'num_guests': booking_data['num_guests'],
+            'TID': booking_id,
+            'recipient_email': booking_data['user_email'],
+        }
+        await service.invoke_send_email_lambda(booking_details)
         return HATEOASResponse(data=result, message="Event booking successful", links=links)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
