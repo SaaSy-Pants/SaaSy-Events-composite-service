@@ -42,7 +42,7 @@ async def get_composite_event(event_id: str, service: CompositeService = Depends
 @router.get("", response_model=HATEOASResponse)
 async def get_all_composite_events(
     limit: int = Query(10, ge=1),
-    offset: int = Query(1, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100),
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
