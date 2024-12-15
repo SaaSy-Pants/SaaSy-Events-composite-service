@@ -69,5 +69,5 @@ jobs:
             #pkill -f "python3 -m app.main" || true
 
             # Run main.py in the background using nohup
-            #nohup python3 -m app.main > app.log 2>&1 &
-            python3 -m app.main
+            nohup python3 -m app.main > app.log 2>&1 &
+            #python3 -m app.main
