@@ -46,12 +46,22 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            # Define environment variables if needed
+            export APP_DIR=/home/ec2-user/SaaSy-Events-eventhandler
+
             # Navigate to the application directory
             mkdir -p $APP_DIR
             cd $APP_DIR
 
+            # Initialize Git repository if not already initialized
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin https://github.com/yourusername/your-repo.git
+            fi
+
             # Pull the latest changes from GitHub
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
 
             # Set up Python environment
             python3 -m venv venv
@@ -61,6 +71,8 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            sudo systemctl restart saasy-events-eventhandler
+            # Kill any existing main.py process
+            pkill -f "python3 main.py" || true
 
-            sudo systemctl restart nginx
+            # Run main.py in the background using nohup
+            nohup python3 main.py > app.log 2>&1 &
