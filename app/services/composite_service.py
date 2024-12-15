@@ -132,12 +132,12 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def get_user_by_query(self, query: dict, token: str):
+    async def get_user_by_email(self, email: str, token: str):
         url = f"{self.config.USER_MGMT_URL}/user"
-        response = await self.client.get(url, params=query, headers=self._get_headers(token))
+        response = await self.client.get(url, params={"email": email}, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
-
+        
     async def get_tickets_and_events(self, user_id: str, limit: int = 10, offset: int = 0, token: str = ""):
         tickets_coroutine = self.get_tickets_by_user(user_id, token)
         events_coroutine = self.get_all_events(limit=limit, offset=offset, token=token)
