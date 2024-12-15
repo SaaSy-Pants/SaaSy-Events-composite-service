@@ -1,3 +1,5 @@
+from typing import List
+
 import httpx
 from app.utils.config import Config
 import asyncio
@@ -52,7 +54,7 @@ class CompositeService:
         response.raise_for_status()
         return response.json()
 
-    async def get_all_events(self, limit: int = 1, offset: int = 10, token: str = ""):
+    async def get_all_events(self, limit: int = 10, offset: int = 0, token: str = ""):
         url = f"{config.EVENT_MGMT_URL}/events?limit={limit}&offset={offset}"
         response = await self.client.get(url, headers=self._get_headers(token))
         response.raise_for_status()
@@ -108,26 +110,26 @@ class CompositeService:
         return response.json()
 
 
-    async def get_organizer(self, organizer_id: str, token: str):
-        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
+    async def get_organiser(self, organiser_id: str, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organiser/{organiser_id}"
         response = await self.client.get(url, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
 
-    async def create_organizer(self, organizer_data: dict, token: str):
-        url = f"{self.config.USER_MGMT_URL}/organizer"
-        response = await self.client.post(url, json=organizer_data, headers=self._get_headers(token))
+    async def create_organiser(self, organiser_data: dict, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organiser"
+        response = await self.client.post(url, json=organiser_data, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
 
-    async def modify_organizer(self, organizer_id: str, organizer_data: dict, token: str):
-        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
-        response = await self.client.put(url, json=organizer_data, headers=self._get_headers(token))
+    async def modify_organiser(self, organiser_id: str, organiser_data: dict, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organiser/{organiser_id}"
+        response = await self.client.put(url, json=organiser_data, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
 
-    async def delete_organizer(self, organizer_id: str, token: str):
-        url = f"{self.config.USER_MGMT_URL}/organizer/{organizer_id}"
+    async def delete_organiser(self, organiser_id: str, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organiser/{organiser_id}"
         response = await self.client.delete(url, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
@@ -137,12 +139,18 @@ class CompositeService:
         response = await self.client.get(url, params={"email": email}, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
+    
+    async def get_organiser_by_email(self, email: str, token: str):
+        url = f"{self.config.USER_MGMT_URL}/organiser"
+        response = await self.client.get(url, params={"email": email}, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
         
     async def get_tickets_and_events(self, user_id: str, limit: int = 10, offset: int = 0, token: str = ""):
         tickets_coroutine = self.get_tickets_by_user(user_id, token)
         events_coroutine = self.get_all_events(limit=limit, offset=offset, token=token)
         tickets_result, events_result = await asyncio.gather(tickets_coroutine, events_coroutine)
-        events = events_result.get("events", [])
+        events = events_result['result']['data']
 
         has_next = len(events) > limit
         if has_next:
@@ -162,3 +170,22 @@ class CompositeService:
             "events": events,
             "events_pagination": events_pagination
         }
+
+    async def get_events_by_organizer(self, oid: str, limit: int, offset: int, token: str) -> List[dict]:
+        url = f"{config.EVENT_MGMT_URL}/events/organizer/{oid}?limit={limit}&offset={offset}"
+        response = await self.client.get(url, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def update_guests_remaining(self, eid: str, guests_remaining: int, token: str) -> dict:
+        url = f"{config.EVENT_MGMT_URL}/events/{eid}/{guests_remaining}"
+        response = await self.client.patch(url, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
+    async def get_users_by_event(self, eid: str, limit: int, offset: int, token: str) -> List[dict]:
+        url = f"{config.TICKET_URL}/ticket/event/{eid}/users?limit={limit}&offset={offset}"
+        response = await self.client.get(url, headers=self._get_headers(token))
+        response.raise_for_status()
+        return response.json()
+
