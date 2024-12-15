@@ -13,8 +13,18 @@ async def get_composite_service():
     finally:
         await service.close()
 
+def validate_token(token: str):
+    try:
+        try:
+            return verify_custom_jwt(token, 'user')
+        except HTTPException:
+            return verify_custom_jwt(token, 'organizer')
+    except HTTPException:
+        raise HTTPException(status_code=403, detail="Access denied: Unauthorized role")
+
 @router.post("/", response_model=HATEOASResponse)
 async def book_ticket(booking_data: dict, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token), response: Response = None):
+    validate_token(token)
     try:
         result = await service.book_ticket(booking_data, token)
         booking_id = result.get("TID")
@@ -49,6 +59,7 @@ async def book_ticket(booking_data: dict, service: CompositeService = Depends(ge
 
 @router.get("/{booking_id}", response_model=HATEOASResponse)
 async def fetch_ticket(booking_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         booking = await service.fetch_ticket(booking_id, token)
         links = [
@@ -64,6 +75,7 @@ async def fetch_ticket(booking_id: str, service: CompositeService = Depends(get_
 
 @router.delete("/{booking_id}", response_model=HATEOASResponse)
 async def cancel_ticket(booking_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         result = await service.cancel_ticket(booking_id, token)
         links = [
@@ -78,6 +90,7 @@ async def cancel_ticket(booking_id: str, service: CompositeService = Depends(get
 
 @router.get("/user/{user_id}", response_model=HATEOASResponse)
 async def get_tickets_of_user(user_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         tickets = await service.get_tickets_by_user(user_id, token)
         links = [
@@ -100,6 +113,7 @@ async def get_tickets_and_events_of_user(
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
+    validate_token(token)
     try:
         combined_data = await service.get_tickets_and_events(user_id, limit=limit, offset=offset, token=token)
         
