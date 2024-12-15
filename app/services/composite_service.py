@@ -1,8 +1,11 @@
+import json
+import os
 from typing import List
 
 import httpx
 from app.utils.config import Config
 import asyncio
+import boto3
 
 config = Config()
 
@@ -10,6 +13,9 @@ class CompositeService:
     def __init__(self):
         self.client = httpx.AsyncClient()
         self.config = Config()
+
+        self.lambda_client = boto3.client('lambda', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+        self.lambda_function_name = os.getenv('SEND_EMAIL_LAMBDA_FUNCTION_NAME')
 
     async def close(self):
         await self.client.aclose()
@@ -188,4 +194,20 @@ class CompositeService:
         response = await self.client.get(url, headers=self._get_headers(token))
         response.raise_for_status()
         return response.json()
+
+    async def invoke_send_email_lambda(self, booking_details: dict):
+        if not self.lambda_function_name:
+            print("Lambda function name not configured.")
+            return None
+        try:
+            payload = json.dumps({'body': {'TID': booking_details['TID'], 'event_name': booking_details['event_name'], 'num_guests': booking_details['num_guests']}})
+            response = self.lambda_client.invoke(
+                FunctionName=self.lambda_function_name,
+                InvocationType='Event',
+                Payload=payload.encode('utf-8')
+            )
+            return response
+        except Exception as e:
+            print(f"Failed to invoke Lambda function: {e}")
+            return None
 
