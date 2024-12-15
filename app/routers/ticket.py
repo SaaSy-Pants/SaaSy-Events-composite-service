@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, Response
-from app.services.composite_service import CompositeService
-from app.models.response import HATEOASResponse, HATEOASLink
-from app.utils.dependencies import get_token
 import httpx
+from fastapi import APIRouter, HTTPException, Depends, Query
+
+from app.models.response import HATEOASResponse, HATEOASLink
+from app.services.composite_service import CompositeService
+from app.utils.dependencies import get_token, verify_custom_jwt
 
 router = APIRouter(prefix="/composite/ticket", tags=["composite_ticket"])
 
@@ -13,42 +14,38 @@ async def get_composite_service():
     finally:
         await service.close()
 
+def validate_token(token: str):
+    try:
+        try:
+            print(token)
+            return verify_custom_jwt(token, 'user')
+        except HTTPException:
+            return verify_custom_jwt(token, 'organiser')
+    except HTTPException:
+        raise HTTPException(status_code=403, detail="Access denied: Unauthorized role")
+
+
 @router.post("/", response_model=HATEOASResponse)
-async def book_ticket(booking_data: dict, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token), response: Response = None):
+async def book_ticket(booking_data: dict, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         result = await service.book_ticket(booking_data, token)
         booking_id = result.get("TID")
-
-        eid = booking_data['eid']
-        num_guests = booking_data['num_guests']
-
-        event_details = await service.get_event(eid, token)
-        old_guests_rem = event_details.get("GuestsRem")
-        if old_guests_rem is None:
-            raise HTTPException(status_code=500, detail="Unable to retrieve event details for guest update")
-
-        new_guests_rem = old_guests_rem - num_guests
-        if new_guests_rem < 0:
-            raise HTTPException(status_code=400, detail="Not enough guests remaining for this event")
-
-        await service.patch_event_guests(eid, new_guests_rem, token)
-
         links = [
             HATEOASLink(rel="self", href=f"/composite/event-booking/{booking_id}", method="GET"),
             HATEOASLink(rel="cancel", href=f"/composite/event-booking/{booking_id}", method="DELETE"),
             HATEOASLink(rel="book_again", href="/composite/event-booking", method="POST"),
         ]
-
-        response.status_code = 201
-        response.headers["Link"] = f"</composite/event-booking/{booking_id}>; rel=self"
-        return HATEOASResponse(data=result, message="Event booking successful and guests updated", links=links)
+        return HATEOASResponse(data=result, message="Event booking successful", links=links)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/{booking_id}", response_model=HATEOASResponse)
 async def fetch_ticket(booking_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         booking = await service.fetch_ticket(booking_id, token)
         links = [
@@ -64,6 +61,7 @@ async def fetch_ticket(booking_id: str, service: CompositeService = Depends(get_
 
 @router.delete("/{booking_id}", response_model=HATEOASResponse)
 async def cancel_ticket(booking_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         result = await service.cancel_ticket(booking_id, token)
         links = [
@@ -78,6 +76,7 @@ async def cancel_ticket(booking_id: str, service: CompositeService = Depends(get
 
 @router.get("/user/{user_id}", response_model=HATEOASResponse)
 async def get_tickets_of_user(user_id: str, service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    validate_token(token)
     try:
         tickets = await service.get_tickets_by_user(user_id, token)
         links = [
@@ -100,9 +99,10 @@ async def get_tickets_and_events_of_user(
     service: CompositeService = Depends(get_composite_service),
     token: str = Depends(get_token)
 ):
+    validate_token(token)
     try:
         combined_data = await service.get_tickets_and_events(user_id, limit=limit, offset=offset, token=token)
-        
+
         current_limit = combined_data["events_pagination"]["limit"]
         current_offset = combined_data["events_pagination"]["offset"]
         has_next = combined_data["events_pagination"]["has_next"]
@@ -143,3 +143,22 @@ async def get_tickets_and_events_of_user(
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/event/{eid}/users", response_model=HATEOASResponse)
+async def get_users_by_event(
+    eid: str,
+    limit: int = Query(10, ge=1, le=100, description="Number of users per page"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    service: CompositeService = Depends(get_composite_service),
+    token: str = Depends(get_token)
+):
+    validate_token(token)
+    try:
+        users = await service.get_users_by_event(eid, limit=limit, offset=offset, token=token)
+        links = [
+            HATEOASLink(rel="self", href=f"/composite/tickets/event/{eid}/users?limit={limit}&offset={offset}", method="GET"),
+        ]
+        return HATEOASResponse(data=users, message="Users retrieved successfully", links=links)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch users: {str(e)}")

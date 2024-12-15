@@ -1,7 +1,8 @@
 import httpx
 from fastapi import APIRouter, HTTPException, Depends
-from app.services.composite_service import CompositeService
+
 from app.models.response import HATEOASResponse, HATEOASLink
+from app.services.composite_service import CompositeService
 from app.utils.dependencies import get_token, verify_custom_jwt
 
 router = APIRouter(prefix="/composite/user", tags=["composite_user"])
@@ -79,5 +80,26 @@ async def delete_user(user_id: str, service: CompositeService = Depends(get_comp
         if exc.response.status_code == 400:
             raise HTTPException(status_code=400, detail="Bad Request: User not found")
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@router.get("/", response_model=HATEOASResponse)
+async def get_user(service: CompositeService = Depends(get_composite_service), token: str = Depends(get_token)):
+    user_info = verify_custom_jwt(token, 'user')
+    email = user_info.get('email')
+    if not email:
+        raise HTTPException(status_code=400, detail="Email not found in token")
+    
+    try:
+        user = await service.get_user_by_email(email, token)
+        links = [
+            HATEOASLink(rel="self", href=f"/composite/user", method="GET"),
+        ]
+        return HATEOASResponse(data=user, message="User retrieved successfully", links=links)
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=exc.response.status_code,
+            detail=exc.response.json().get("message", "Error fetching user")
+        )
     except Exception:
         raise HTTPException(status_code=500, detail="Internal Server Error")
