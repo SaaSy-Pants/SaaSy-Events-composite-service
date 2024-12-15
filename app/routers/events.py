@@ -114,6 +114,15 @@ async def update_composite_event(
             HATEOASLink(rel="delete", href=f"/composite/events/{event_id}", method="DELETE"),
             HATEOASLink(rel="tickets", href=f"/composite/events/{event_id}/tickets", method="GET"),
         ]
+        user_ids = await service.get_users_by_event(event_id, 100, 0, token)
+        user_emails = []
+        for attendee in user_ids['uids']:
+            profile = await service.get_user(attendee['UID'], token)
+            user_emails.append(profile['details']['Email'])
+
+        if len(user_emails) > 0:
+            event_data['UserEmails'] = list(set(user_emails))
+            await service.publish_event_update_notification(event_data)
         return HATEOASResponse(data=result, message="Event updated successfully", links=links)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)

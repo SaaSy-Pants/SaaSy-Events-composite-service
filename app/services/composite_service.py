@@ -16,6 +16,8 @@ class CompositeService:
 
         self.lambda_client = boto3.client('lambda', region_name=os.getenv('AWS_REGION', 'us-east-1'))
         self.lambda_function_name = os.getenv('SEND_EMAIL_LAMBDA_FUNCTION_NAME')
+        self.sns_client = boto3.client('sns', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+        self.sns_topic_arn = os.getenv('EVENT_UPDATED_SNS_TOPIC_ARN')
 
     async def close(self):
         await self.client.aclose()
@@ -209,5 +211,20 @@ class CompositeService:
             return response
         except Exception as e:
             print(f"Failed to invoke Lambda function: {e}")
+            return None
+
+    async def publish_event_update_notification(self, message):
+        if not self.sns_topic_arn:
+            return None
+        try:
+            response = self.sns_client.publish(
+                TopicArn=self.sns_topic_arn,
+                Message=json.dumps(message),
+                Subject='Event Updated Notification'
+            )
+            print(f"Published event update notification to SNS. Message ID: {response['MessageId']}")
+            return response
+        except Exception as e:
+            print(f"Failed to publish event update notification: {e}")
             return None
 
