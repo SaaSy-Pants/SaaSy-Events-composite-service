@@ -26,6 +26,7 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthMiddleware)
 
 app.include_router(users.router)
+app.include_router(organizer.router)
 app.include_router(events.router)
 app.include_router(ticket.router)
 app.include_router(health.router)
